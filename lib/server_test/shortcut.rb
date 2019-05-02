@@ -5,24 +5,34 @@ module ServerTest
       "C:/ProgramData/Microsoft/Windows/Start Menu/Programs"
     ]
 
+    class << self
+      attr_accessor :wscript_shell
+    end
+
     def initialize(filename)
-      @shortcut = evaluate_target_path(select(filename, valid_shortcuts))
+      words = filename.split(' ')
+
+      shortcut = valid_shortcuts.select do |s|
+        words.any? { |w| s.downcase.include? w.downcase }
+      end.first
+
+      @target = evaluate_target_path(shortcut)
     end
 
     def valid_shortcuts
       START_MENU_DIRS.map { |d| Dir["#{d}/**/*.lnk"] }.flatten.reject { |f| f.downcase.include? 'uninstall' }
     end
 
-    def select(filename, shortcuts)
-      shortcuts.select { |s| s.downcase.include? filename.downcase }.first.tr('/', '\\')
-    end
-
     def evaluate_target_path(shortcut)
-      WIN32OLE.new('WScript.Shell').CreateShortcut(shortcut).targetpath
+      self.class.wscript_shell ||= WIN32OLE.new('WScript.Shell')
+
+      shortcut = shortcut.tr('/', '\\')
+
+      self.class.wscript_shell.CreateShortcut(shortcut).targetpath
     end
 
     def to_s
-      @shortcut.to_s
+      @target.to_s
     end
   end
 end

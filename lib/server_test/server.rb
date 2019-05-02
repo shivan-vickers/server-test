@@ -17,9 +17,7 @@ module ServerTest
     end
 
     def open(filename)
-      target = Shortcut.new(filename)
-
-      system "start #{target}"
+      system "start \"#{Shortcut.new(filename)}\""
     end
   end
 end
