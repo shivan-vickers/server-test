@@ -5,18 +5,22 @@ module ServerTest
       "C:/ProgramData/Microsoft/Windows/Start Menu/Programs"
     ]
 
-    class << self
-      attr_accessor :wscript_shell
-    end
+    def initialize(query)
+      words = filename.split(' ').map { |w| w.downcase }
 
-    def initialize(filename)
-      words = filename.split(' ')
+      shortcut = ''
 
-      shortcut = valid_shortcuts.select do |s|
-        words.any? { |w| s.downcase.include? w.downcase }
-      end.first
+      valid_shortcuts.each do |s|
+        next unless words.all? { |w| s.downcase.include? w }
+        shortcut = s
+        break
+      end
+
+      puts "Shortcut: #{shortcut}"
 
       @target = evaluate_target_path(shortcut)
+
+      puts "Opening: #{@target}"
     end
 
     def valid_shortcuts
@@ -24,11 +28,11 @@ module ServerTest
     end
 
     def evaluate_target_path(shortcut)
-      self.class.wscript_shell ||= WIN32OLE.new('WScript.Shell')
+      wscript_shell = WIN32OLE.new('WScript.Shell')
 
       shortcut = shortcut.tr('/', '\\')
 
-      self.class.wscript_shell.CreateShortcut(shortcut).targetpath
+      wscript_shell.CreateShortcut(shortcut).targetpath
     end
 
     def to_s

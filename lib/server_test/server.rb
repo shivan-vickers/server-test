@@ -16,8 +16,13 @@ module ServerTest
       @server.start
     end
 
-    def open(filename)
-      system "start \"#{Shortcut.new(filename)}\""
+    def open(query)
+      shortcut = Shortcut.new(query)
+      exe = File.basename shortcut.to_s
+      dir = shortcut.to_s.sub(exe, '')
+      cmd = "start \"\" /d \"#{dir}\" \"#{exe}\""
+      puts cmd
+      system cmd
     end
   end
 end
